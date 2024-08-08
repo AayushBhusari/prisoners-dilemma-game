@@ -5,11 +5,15 @@ import io from "socket.io-client";
 
 const Game = ({ roomCode, isHost, onBack }) => {
   const [choice, setChoice] = useState("");
+  const [rC, setRC] = useState(roomCode);
+  const [playerName, setPlayerName] = useState("Player");
+  const [oppName, setOppName] = useState("Opponent");
   const [opponentChoice, setOpponentChoice] = useState("");
   const [result, setResult] = useState("");
   const [socket, setSocket] = useState(null);
   const [playerMoves, setPlayerMoves] = useState([]);
   const [opponentMoves, setOpponentMoves] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const newSocket = io("http://localhost:5000");
@@ -26,6 +30,15 @@ const Game = ({ roomCode, isHost, onBack }) => {
 
     newSocket.on("roomCreated", ({ roomCode }) => {
       console.log(`Room created with code: ${roomCode}`);
+      setRC(roomCode);
+    });
+
+    newSocket.on("roomJoined", () => {
+      console.log("Successfully joined the room");
+    });
+
+    newSocket.on("roomError", (message) => {
+      setErrorMessage(message);
     });
 
     newSocket.on("gameStart", () => {
@@ -89,12 +102,18 @@ const Game = ({ roomCode, isHost, onBack }) => {
         >
           Back to Home
         </button>
-        <h2 className="text-2xl mb-4">Room Code: {roomCode}</h2>
+        <h2 className="text-2xl mb-4">Room Code: {rC}</h2>
       </div>
+
+      {errorMessage && (
+        <div className="text-red-500 text-center">
+          <h3>{errorMessage}</h3>
+        </div>
+      )}
 
       <div className="prev-res h-24 bg-orange-300 flex flex-col items-center justify-center">
         <div className="moves flex flex-col items-center gap-2">
-          <h3 className="text-xl">Player</h3>
+          <h3 className="text-xl">Player: {playerName}</h3>
           <div className="flex gap-2">
             {playerMoves.map((move, index) => (
               <div
@@ -105,7 +124,7 @@ const Game = ({ roomCode, isHost, onBack }) => {
               </div>
             ))}
           </div>
-          <h3 className="text-xl">Opponent</h3>
+          <h3 className="text-xl">Opponent: {oppName}</h3>
           <div className="flex gap-2">
             {opponentMoves.map((move, index) => (
               <div
