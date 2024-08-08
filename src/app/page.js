@@ -1,56 +1,50 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect } from "react";
-import io from "socket.io-client";
+import { useState } from "react";
+import Home from "../Components/Home";
+import Game from "../Components/Game";
+import { Gelasio } from "next/font/google";
+
+const gelasio = Gelasio({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["italic"],
+});
 
 const Page = () => {
-  useEffect(() => {
-    const socket = io("http://localhost:3000");
+  const [currentScreen, setCurrentScreen] = useState("home");
+  const [roomCode, setRoomCode] = useState("");
+  const [isHost, setIsHost] = useState(false);
 
-    // Handle connection event
-    socket.on("connect", () => {
-      console.log("Connected to server with ID:", socket.id);
+  const handleHost = () => {
+    setIsHost(true);
+    setCurrentScreen("game");
+  };
 
-      // Send data to server
-      socket.emit("message", "Hello from client");
-      socket.emit("id", socket.id);
-    });
-  }, []);
+  const handleJoin = () => {
+    const code = prompt("Enter Room Code:");
+    if (code) {
+      setRoomCode(code);
+      setIsHost(false);
+      setCurrentScreen("game");
+    }
+  };
+
+  const handleRandom = () => {
+    // Implement random room joining logic here
+  };
+
+  const handleBack = () => {
+    setCurrentScreen("home");
+  };
 
   return (
-    <div className="bg-gray-100 flex items-center justify-center h-screen">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md h-1/3 flex flex-col justify-around">
-        <h1 className="text-4xl font-bold mb-4 text-center text-black">
-          Prisoner&apos;s Dilemma
-        </h1>
-        <div className="flex justify-around">
-          <Link href="/host">
-            <button
-              id="host-btn"
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-            >
-              Host Game
-            </button>
-          </Link>
-          <Link href="/join">
-            <button
-              id="join-btn"
-              className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600"
-            >
-              Join Game
-            </button>
-          </Link>
-          <Link href="/random">
-            <button
-              id="random-btn"
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-            >
-              Random Game
-            </button>
-          </Link>
-        </div>
-      </div>
+    <div className={gelasio.className}>
+      {currentScreen === "home" ? (
+        <Home onHost={handleHost} onJoin={handleJoin} onRandom={handleRandom} />
+      ) : (
+        <Game roomCode={roomCode} isHost={isHost} onBack={handleBack} />
+      )}
     </div>
   );
 };
